@@ -1,17 +1,20 @@
-FROM python:3.9
+name: CI Pipeline
 
-# Set the working directory inside the container
-WORKDIR /code
+on:
+  push:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
-# Copy the requirements.txt file into the container
-COPY requirements.txt /code/requirements.txt
+      - name: Build Docker image
+        run: docker build -t myapp .
 
-# Install dependencies listed in requirements.txt
-RUN pip install --no-cache-dir --upgrade -r /code/requirements.txt
-
-# Copy the Python app (main.py) and HTML form (form.html) into the container
-COPY main.py /code/main.py
-COPY form.html /code/form.html
-
-# Set the command to run the application using uvicorn
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "80"]
+      - name: Run Docker container
+        run: docker run -d -p 8000:80 myapp
+      
